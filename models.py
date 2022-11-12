@@ -1,26 +1,42 @@
-from pydantic import BaseModel
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
-class User(BaseModel):
-    user_id: int
+from database import Base
 
-class Audio(BaseModel):
-    audio_id: int
-    audio_file: bytes
-    agent_name: str
+class User(Base):
+    __tablename__ = "users"
 
-class Job(BaseModel):
-    job_id: int
-    audio_id: int
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True)
+    company_name = Column(String, index=True)
+    company_size = Column(Integer)
+    first_name = Column(String, index=True)
+    last_name = Column(String, index=True)
+    password = Column(String, index=True)
 
-class Transcribe(BaseModel):
-    job_id: int
-    transcript: str
+    audio_job = relationship("AudioJob", back_populates="user")
 
-class Response(BaseModel):
-    job_id: int
+class AudioJob(Base):
+    __tablename__ = "jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user = relationship("User", back_populates="audios")
+    audio_file =  Column(String)
+    transcript = relationship("Transcribe", back_populates="audio_job")
+
+class Transcribe(Base):
+    __tablename__ = "Transcribes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    transcribed_text = Column(String, index=True)
+    sentiment = relationship("Sentiment", back_populates="transcribe")
+    audio_job = relationship("Job", back_populates="job")
+
+class Sentiment(Base):
+    __tablename__ = "sentiments"
+
+    id = Column(Integer, primary_key=True, index=True)
     friendly_score: int
     customer_satisfaction: int
 
-class Sentiment(BaseModel):
-    transcript_id: int
-    response: Response
+    transcribe = relationship("Transcribe", back_populates="sentiment")
